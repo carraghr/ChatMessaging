@@ -21,17 +21,17 @@ static void retreatPointer(circular_queue mq){
   mq->full = false;
 }
 
-bool emptyMessageQueue(circular_queue mq){
+bool emptyMessageQueue(messageQueue mq){
   return (!mq->full && (mq->head == mq->tail));
 }
 
-bool fullMessageQueue(circular_queue mq){
+bool fullMessageQueue(messageQueue mq){
   return mq->full;
 }
 
-circular_queue init(char** messages, size_t size){
+messageQueue init(char** messages, size_t size){
 
-  circular_queue mq = malloc(sizeof(circular_queue));
+  messageQueue mq = malloc(sizeof(circular_queue));
 
   mq->messageBuffer = messages;
   mq->max = size;
@@ -40,17 +40,17 @@ circular_queue init(char** messages, size_t size){
   return mq;
 }
 
-void messageQueueFree(circular_queue mq){
+void messageQueueFree(messageQueue mq){
   free(mq);
 }
 
-void messageQueueReset(circular_queue mq){
+void messageQueueReset(messageQueue mq){
   mq->head = 0;
   mq->tail = 0;
   mq->full = false;
 }
 
-size_t messageQueueSize(circular_queue mq){
+size_t messageQueueSize(messageQueue mq){
   size_t size = mq->size;
 
   if(!mq->full){
@@ -63,12 +63,12 @@ size_t messageQueueSize(circular_queue mq){
   return size;
 }
 
-void addMessageQueue(circular_queue mq, char *message){
+void addMessageQueue(messageQueue mq, char *message){
   mq->messageBuffer[mq->head] = message;
   advancePointer(mq);
 }
 
-char* removeMessage(circular_queue mq, ){
+char* removeMessage(messageQueue mq, ){
   char* message;
   if(!){
 
