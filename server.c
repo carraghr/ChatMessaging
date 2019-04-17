@@ -14,14 +14,45 @@
 #define PORT 8080
 #define BUFFERSIZE 10
 
-typedef struct sharedResources{
-  int sockets[10];
-  int size;
-  circular_queue mq;
+typedef struct shared_reader{
+  int socketId;
+  messageQueue mq;
+}reader_args;
 
-}ThreadShare;
+reader_args read_init(int socketID, messageQueue mq){
+  reader_args reader = malloc(sizeof(shared_reader));
+  reader->socketId = socketID;
+  reader->mq = mq;
+  return reader;
+}
 
-void *serverReaderThread(void *passesSocket){
+void read_updateID(int socketID, messageQueue mq){
+  reader->socketId = socketID;
+  return reader;
+}
+
+void *serverReaderThread(void *passedArgs){
+  reader_args ra = (reader_args*)passedArgs;
+  messageQueue mq = ra->mq;
+  int socketID = ra->socketId;
+  char buffer[1024] = {0};
+  while((valread = read(socketID, buffer,1024))){
+    addMessageQueue(mq,buffer);
+  }
+  removeSocket(socketID)
+}
+
+void *serverWriterThread(void *passedArgs){
+  ThreadShare ts = (ThreadShare*)passedArgs;
+  messageQueue mq = ts->mq;
+  while(true){
+    char* message = removeMessage(mq);
+    int[] arr = getAllSockets();
+    int length = sizeof(arr)/sizeof(int);
+    for(int i=0; i<length;i++){
+      send(arr[i], message, strlen(message), 0 );
+    }
+  }
 }
 
 
@@ -32,8 +63,6 @@ int main(int argc, char const *argv[]){
     int addrlen= sizeof(address);
     char buffer[1024] = {0};
     char *message;
-
-
 
     //create socket for server
     if( (server_fd = socket(AF_INET, SOCK_STEAM, 0)) == 0 ){
@@ -57,16 +86,18 @@ int main(int argc, char const *argv[]){
       exit(EXIT_FAILURE);
     }
 
-
-    //create shared resources for threads to be created
-    ThreadShare share;
-
-
     //create messageQueue
     char** buffer = malloc(BUFFERSIZE * sizeof(char*));
-    circular_queue mq = init(buffer, BUFFERSIZE);
+    messageQueue mq = message_queue_init(buffer, BUFFERSIZE);
+
+    //create shared resources for threads to be created
+    ThreadShare ts = thread_share_init(mq);
 
     bool work = true;
+    pthread_t socket_write;
+    pthread_create(&socketReaderThread,NULL,serverWriterThread,(void*)&ts);
+
+    reader_args ra = read_init(0, mq);
 
     while(work){
       //listen for a client to approach the server
@@ -77,12 +108,13 @@ int main(int argc, char const *argv[]){
       if( (new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen)*&addrlen)) < 0){
         perror("accept");
         exit(EXIT_FAILURE);
+      }else{
+        addSocket(ts,new_socket);
+        read_updateID(ra,new_socket);
+        pthread_t socketReaderThread;
+        signal(SIGINT,shutDownSignal);
+        pthread_create(&socketReaderThread,NULL,serverReaderThread,(void*)&ra);
       }
-
-      pthread_t socketReaderThread;
-      signal(SIGINT,shutDownSignal);
-      pthread_create(&socketReaderThread,NULL,serverReaderThread,(void*)&);
-
     }
 
     //accept a client socket
