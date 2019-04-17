@@ -31,7 +31,7 @@ bool fullMessageQueue(messageQueue mq){
   return mq->full;
 }
 
-messageQueue init(char** messages, size_t size){
+messageQueue message_queue_init(char** messages, size_t size){
 
   messageQueue mq = malloc(sizeof(circular_queue));
 

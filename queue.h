@@ -14,7 +14,6 @@ void resetQueue(messageQueue* mq);
 
 void addMessage(messageQueue mq, char[] message);
 
-
 void char[] removeMessage(messageQueue mq, char[] message);
 
 bool isEmpty(messageQueue mq);
