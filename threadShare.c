@@ -15,7 +15,7 @@ typedef struct sharedResources{
   messageQueue mq;
 };
 
-ThreadShare init(messageQueue mq){
+ThreadShare thread_share_init(messageQueue mq){
 
   ThreadShare ts = malloc(sizeof(sharedResources));
 
@@ -38,6 +38,7 @@ void addSocket(ThreadShare ts, int socketID){
   }
   ts->sockets[ts->input] = socketID;
   ts->input = (ts->input +1) % SOCKETALLOWANCE;
+  ts->size++;
 }
 
 void removeSocket(ThreadShare ts, int socketID){
@@ -49,8 +50,20 @@ void removeSocket(ThreadShare ts, int socketID){
       return;
     }
     ts->sockets[turn] = -1;
+    ts->size--;
 }
 
 bool full(ThreadShare ts){
   return (size == SOCKETALLOWANCE);
+}
+
+int[] getAllSockets(ThreadShare ts){
+  int result[ts->size];
+  for(int i = 0, index = 0; i<SOCKETALLOWANCE; i++){
+    if(ts->sockets[i] != -1){
+      result[index] = ts->sockets[i];
+      index++;
+    }
+  }
+  return result;
 }
