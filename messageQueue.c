@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <semaphore.h>
 
 #include 'queue.h'
 
@@ -9,6 +10,7 @@ struct circular_queue{
   size_t head, tail;
   size_t max;
   bool full;
+  sem_t mutex;
 };
 
 static void advancePointer(circular_queue mq){
@@ -35,6 +37,8 @@ messageQueue init(char** messages, size_t size){
 
   mq->messageBuffer = messages;
   mq->max = size;
+
+  sem_init(&mq->mutex,0,1);
 
   resetQueue(mq);
   return mq;
@@ -64,13 +68,21 @@ size_t messageQueueSize(messageQueue mq){
 }
 
 void addMessageQueue(messageQueue mq, char *message){
+  sem_wait(&mq->mutex);
   mq->messageBuffer[mq->head] = message;
   advancePointer(mq);
+  sem_post(&mq->mutex);
 }
 
-char* removeMessage(messageQueue mq, ){
+char* removeMessage(messageQueue mq){
   char* message;
-  if(!){
-
+  sem_wait(&mq->mutex);
+  while(emptyMessageQueue(mq)){
+    sem_post(&mq->mutex);
+    sem_wait(&mq->mutex);
   }
+  message = mq->messageBuffer[mq->tail];
+  retreatPointer(mq);
+  sem_post(&mq->mutex);
+  return message;
 }
