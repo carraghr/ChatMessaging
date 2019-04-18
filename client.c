@@ -5,6 +5,42 @@
 #include <string.h>
 #define PORT 8080
 
+typedef struct shared_reader{
+  int socketId;
+}args;
+
+args args_init(int socketID){
+  args arrs = malloc(sizeof(shared_reader));
+  arrs->socketId = socketID;
+  return arrs;
+}
+
+void *write_message_to_server(void *passedArgs){
+  args ra = (args*)passedArgs;
+  int sock = ra->socketId;
+  char buffer[1024] = {0};
+
+  while(true){
+    scanf("%s", buffer);
+    send(sock, buffer, strlen(buffer), 0);
+  }
+}
+
+void *read_message_from_server(void *passedArgs){
+  reader_args ra = (reader_args*)passedArgs;
+  int socketID = ra->socketId;
+  char buffer[1024] = {0};
+  while((valread = read(socketID, serverMessageBuffer, 1024))>0){
+      printf("%s\n",buffer );
+  }
+}
+
+void shutDownSignal(int signalCode){
+    if(signalCode == SIGINT){
+        //put code to shut down threads and disconnet socket connection;
+    }
+}
+
 int main(int argc, char const *argv[]){
   struct sockaddr_in address;
   int sock = 0, valread;
@@ -37,6 +73,17 @@ int main(int argc, char const *argv[]){
     printf("\nConnection Failed\n");
     return -1;
   }
+
+  args arrs = args_init(sock);
+
+  signal(SIGINT,shutDownSignal);
+
+  pthread_t write_thread;
+  pthread_create(&write_thread,NULL,write_message_to_server,(void*)&arrs);
+
+  pthread_t read_thread;
+  pthread_create(&read_thread,NULL,read_message_from_server,(void*)&arrs);
+
   /***
   //to send message;
   send(sock, messageBuffer, strlen(messageBuffer), 0);
@@ -44,6 +91,10 @@ int main(int argc, char const *argv[]){
   //to recive message and display 1024 size of buffer
   valread = read(sock, serverMessageBuffer, 1024)
   */
+  pthread_join(write_thread, NULL);
+
+  pthread_join(read_thread, NULL);
+
   return 0;
 
 }
